@@ -1,7 +1,16 @@
+import { useState } from "react";
 import { MdOutlineMailOutline } from "react-icons/md";
-import { RiLockPasswordLine } from "react-icons/ri";
+import InputPassword from "../../components/InputPassword";
 
 const Login = () => {
+
+    const [emai, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+
+    const handleLogin = async () => {
+        
+    }
+
     return (
         <div className="h-screen bg-amber-50 overflow-hidden relative">
             <div className='container h-screen flex items-center justify-center px-20 mx-auto'>
@@ -13,14 +22,14 @@ const Login = () => {
                     <form>
                         <div className="flex items-center gap-2 border rounded-md h-8 w-80 px-2 mt-5">
                             <MdOutlineMailOutline />
-                            <input type="text" placeholder="Email"
+                            <input type="text"
+                                placeholder="Email"
+                                value={emai}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="focus:outline-none text-lg w-full" />
                         </div>
-                        <div className="flex items-center gap-2 border rounded-md h-8 w-80 px-2 mt-2">
-                            <RiLockPasswordLine />
-                            <input type="password" placeholder="Password"
-                                className="focus:outline-none text-lg w-full" />
-                        </div>
+
+                        <InputPassword password={password} setPassword={(e) => setPassword(e.target.value)}/>
 
                         <button type="submit" className="bg-primary w-28 h-7 mt-5 rounded-md text-white">LOGIN</button>
                     </form>
