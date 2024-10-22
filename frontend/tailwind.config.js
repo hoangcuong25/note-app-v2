@@ -13,6 +13,9 @@ export default {
       fontFamily: {
         display: ["Poppins", "sans-serif"]
       },
+      backgroundImage: {
+        "login-bg-img" : "url('./src/assets/bg-img.jpg')"
+      }
     },
   },
   plugins: [],
