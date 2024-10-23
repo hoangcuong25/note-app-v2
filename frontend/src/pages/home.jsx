@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar"
 import axiosInstance from '../utilities/axiosInstance'
 import { IoIosAdd } from "react-icons/io";
 import Modal from 'react-modal';
+import AddEditModal from "../components/AddEditModal";
 
 const Home = () => {
 
@@ -56,7 +57,7 @@ const Home = () => {
     }, [])
 
     return (
-        <div className="">
+        <div className="w-full bg-amber-200">
             <Navbar userInfo={userInfo} />
             <div className="flex flex-wrap justify-start">
                 {noteInfo?.map((note) => {
@@ -95,7 +96,14 @@ const Home = () => {
                 contentLabel=""
                 className="w-[40%] max-h-3/4 bg-white rounded-md mx-auto mt-14 p-5 overflow-scroll"
             >
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Veritatis est rem qui distinctio pariatur natus accusantium libero iusto asperiores, nihil minus vel mollitia soluta a autem vitae debitis corrupti laudantium!</p>
+                <AddEditModal 
+                onClose={() => setOpenAddEditModal({
+                    isShown: false,
+                    type: "add",
+                    data: null
+                })} 
+                getAllNote={getAllNote}
+                />
             </Modal>
         </div>
     )
