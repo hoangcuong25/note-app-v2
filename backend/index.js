@@ -105,7 +105,7 @@ app.get("/get-user", authenticateToken, async (req, res) => {
             return res.status(400).json({ error: true, message: "User not found" })
         }
 
-        return res.status(200).json({ error: false, user: user })
+        return res.status(200).json({ error: false, userName: user.name})
 
     } catch (error) {
         res.status(500).json({ message: "Server error", error })
