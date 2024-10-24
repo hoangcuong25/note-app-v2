@@ -5,6 +5,7 @@ import axiosInstance from '../utilities/axiosInstance'
 import { IoIosAdd } from "react-icons/io";
 import Modal from 'react-modal';
 import AddEditModal from "../components/AddEditModal";
+import { toast } from 'react-toastify';
 
 const Home = () => {
 
@@ -45,11 +46,57 @@ const Home = () => {
         try {
             const noteId = note._id;
             await axiosInstance.delete(`/delete-note/${noteId}`);
+
+            toast.success("Delete Note Successfully")
             getAllNote()
         } catch (error) {
             console.error("Error deleting note:", error);
         }
     };
+
+    const editIsPinned = async (note) => {
+        try {
+            const noteId = note._id
+            const response = await axiosInstance.put(`/edit-pinned/${noteId}`, {
+                isPinned: !note.isPinned
+            })
+            
+            getAllNote()
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message)
+            } else {
+                alert("An unexpected error occurred")
+            }
+        }
+
+    }
+
+    const editNote = async (note) => {
+        setOpenAddEditModal({
+            isShown: true,
+            type: "edit",
+            data: note
+        })
+    }
+
+    const onSearchNote = async (query) => {
+        try {
+            const res = await axiosInstance.get("/search-notes", {
+                params: { query },
+            })
+
+            if (res.data && res.data.notes) {
+                setNoteInfo(res.data.notes)
+            }
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message)
+            } else {
+                alert("An unexpected error occurred")
+            }
+        }
+    }
 
     useEffect(() => {
         getUserInfo()
@@ -58,13 +105,19 @@ const Home = () => {
 
     return (
         <div className="w-full bg-amber-200">
-            <Navbar userInfo={userInfo} />
+            <Navbar userInfo={userInfo} onSearchNote={onSearchNote} getAllNote={getAllNote} />
             <div className="flex flex-wrap justify-start">
                 {noteInfo?.map((note) => {
                     return <CardNote
-                        key={note._id} title={note.title}
-                        content={note.content} isPinned={note.isPinned}
-                        tags={note.tags} handleDeleteNote={() => handleDeleteNote(note)}
+                        key={note._id}
+                        title={note.title}
+                        date={note.createdOn}
+                        content={note.content}
+                        isPinned={note.isPinned}
+                        tags={note.tags}
+                        handleDeleteNote={() => handleDeleteNote(note)}
+                        editNote={() => editNote(note)}
+                        editIsPinned={() => editIsPinned(note)}
                     />
                 })}
             </div>
@@ -96,13 +149,15 @@ const Home = () => {
                 contentLabel=""
                 className="w-[40%] max-h-3/4 bg-white rounded-md mx-auto mt-14 p-5 overflow-scroll"
             >
-                <AddEditModal 
-                onClose={() => setOpenAddEditModal({
-                    isShown: false,
-                    type: "add",
-                    data: null
-                })} 
-                getAllNote={getAllNote}
+                <AddEditModal
+                    onClose={() => setOpenAddEditModal({
+                        isShown: false,
+                        type: "add",
+                        data: null
+                    })}
+                    type={openAddEditModal.type}
+                    getAllNote={getAllNote}
+                    noteDate={openAddEditModal.data}
                 />
             </Modal>
         </div>

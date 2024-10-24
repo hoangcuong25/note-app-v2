@@ -105,7 +105,7 @@ app.get("/get-user", authenticateToken, async (req, res) => {
             return res.status(400).json({ error: true, message: "User not found" })
         }
 
-        return res.status(200).json({ error: false, userName: user.name})
+        return res.status(200).json({ error: false, userName: user.name })
 
     } catch (error) {
         res.status(500).json({ message: "Server error", error })
@@ -149,7 +149,7 @@ app.post("/add-note", authenticateToken, async (req, res) => {
 app.put("/edit-note/:noteId", authenticateToken, async (req, res) => {
     try {
         const { noteId } = req.params
-        const { title, content } = req.body
+        const { title, content, tags } = req.body
         const { userId } = req.user
 
         const note = await Note.findOne({ _id: noteId, userId: userId })
@@ -158,8 +158,9 @@ app.put("/edit-note/:noteId", authenticateToken, async (req, res) => {
             return res.status(400).json({ error: true, message: "Nothing change" })
         }
 
-        if (title) note.title = title
-        if (content) note.content = content
+        note.title = title
+        note.content = content
+        note.tags = tags
 
         await note.save()
 
@@ -189,13 +190,56 @@ app.get("/get-all-notes", authenticateToken, async (req, res) => {
     try {
         const { userId } = req.user
 
-        const notes = await Note.find({ userId: userId })
+        const notes = await Note.find({ userId: userId }).sort({ isPinned: -1 });
 
         return res.status(200).json({ error: false, message: "Get all notes Succsessfully", notes })
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
     }
 })
+
+// update isPinned
+app.put("/edit-pinned/:noteId", authenticateToken, async (req, res) => {
+    try {
+        const { userId } = req.user
+        const { noteId } = req.params
+        const { isPinned } = req.body
+
+        const note = await Note.findOne({ _id: noteId, userId: userId })
+
+        if (!note) return res.status(400).json({ error: true })
+
+        note.isPinned = isPinned
+
+        await note.save()
+
+        return res.status(200).json({ error: false, message: "update successfully" })
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+})
+
+app.get("/search-notes", authenticateToken, async (req, res) => {
+    try {
+        const { userId } = req.user;
+        const { query } = req.query;
+
+        
+        const searchCriteria = {
+            userId: userId,
+            $or: [
+                { title: { $regex: query, $options: 'i' } },  
+                { content: { $regex: query, $options: 'i' } } 
+            ]
+        };
+
+        const notes = await Note.find(query ? searchCriteria : { userId: userId }).sort({ isPinned: -1 });
+
+        return res.status(200).json({ error: false, message: "Notes retrieved successfully", notes });
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
 
 
 

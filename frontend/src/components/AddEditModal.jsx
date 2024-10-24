@@ -3,13 +3,15 @@ import { TiPen } from "react-icons/ti";
 import { MdOutlineContentPaste } from "react-icons/md";
 import { FaHashtag } from "react-icons/fa6";
 import { TiDeleteOutline } from "react-icons/ti";
+import { FiDelete } from "react-icons/fi";
 import axiosInstance from '../utilities/axiosInstance';
+import { toast } from 'react-toastify';
 
-const AddEditModal = ({ onClose, getAllNote }) => {
+const AddEditModal = ({ onClose, getAllNote, type, noteDate }) => {
 
-    const [title, setTitle] = useState()
-    const [content, setContent] = useState()
-    const [tags, setTags] = useState([])
+    const [title, setTitle] = useState(noteDate?.title || "");
+    const [content, setContent] = useState(noteDate?.content || "")
+    const [tags, setTags] = useState(noteDate?.tags || [])
     const [tagInput, setTagInput] = useState("");
 
     const [error, setError] = useState("")
@@ -20,26 +22,26 @@ const AddEditModal = ({ onClose, getAllNote }) => {
         if (tagInput.trim() !== "") {
             setTags([...tags, tagInput.trim()]);
             setTagInput("");
+            toast.success("Add Tag Successfully")
         }
     }
 
-    const handleAddNote = async (e) => {
+    const handleDeleteTag = async (e, tagRemove) => {
         e.preventDefault();
 
+        setTags(tags.filter((tag) => tag !== tagRemove))
+        toast.success("Delete Tag Successfully")
+    }
+
+    const addNote = async () => {
         try {
-            if (!title || !content) {
-                setError("Please fill in both the title and content");
-                return;
-            }
-
-            setError("")
-
             const response = await axiosInstance.post("/add-note", {
                 title: title,
                 content: content,
                 tags: tags,
             })
 
+            toast.success("Add Note Successfully")
             onClose()
             getAllNote()
         } catch (error) {
@@ -51,9 +53,51 @@ const AddEditModal = ({ onClose, getAllNote }) => {
         }
     }
 
-    console.log("tags: ", tags)
-    console.log("title: ", title)
-    console.log("content: ", content)
+    const editNote = async () => {
+        try {
+            const noteId = noteDate._id
+
+            const response = await axiosInstance.put(`/edit-note/${noteId}`, {
+                title: title,
+                content: content,
+                tags: tags
+            })
+
+            toast.success("Edit Note Successfully")
+            onClose()
+            getAllNote()
+        } catch (error) {
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message)
+            } else {
+                alert("An unexpected error occurred")
+            }
+        }
+    }
+
+    const handleAddEditNote = (e) => {
+        e.preventDefault();
+
+        if (!title) {
+            setError("Please enter the title")
+            return
+        }
+
+        if (!content) {
+            setError("Please enter the content")
+            return
+        }
+
+        setError("")
+
+        if (type === "edit") {
+            editNote()
+        } else {
+            addNote()
+        }
+    }
+
+
 
     return (
         <div className='my-5 relative'>
@@ -89,7 +133,14 @@ const AddEditModal = ({ onClose, getAllNote }) => {
                     <div className='flex gap-3'>
                         {tags.map((tag, index) => {
                             return (
-                                <p className='mb-1 bg-gray-100 rounded-md px-2 py-1' key={index}>#{tag}</p>
+                                <div className='mb-3 bg-gray-100 rounded-md pl-2 pr-7 py-1 relative' key={index}>
+                                    #{tag}
+                                    <button className='absolute top-1 right-1 text-sm'
+                                        onClick={(e) => handleDeleteTag(e, tag)}
+                                    >
+                                        <FiDelete />
+                                    </button>
+                                </div>
                             )
                         })}
                     </div>
@@ -118,9 +169,9 @@ const AddEditModal = ({ onClose, getAllNote }) => {
 
                 <button
                     className='bg-primary p-2 rounded-lg text-white hover:bg-blue-500 text-xl'
-                    onClick={handleAddNote}
+                    onClick={handleAddEditNote}
                 >
-                    add edit
+                    {type === "add" ? "ADD NOTE" : "EDIT NOTE"}
                 </button>
             </form>
 
